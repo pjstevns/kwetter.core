@@ -14,8 +14,11 @@ LDFLAGS += $(shell pkg-config --libs libzmq)
 CFLAGS += -I /usr/include/zdb
 LDFLAGS += -lzdb
 
-kwetterd: kwetterd.c
-	gcc $(CFLAGS) $(LDFLAGS) -o kwetterd kwetterd.c
+kwetterd: kwetterd.c commands.c helpers.c
+	gcc -c $(CFLAGS) -o helpers.o helpers.c
+	gcc -c $(CFLAGS) -o commands.o commands.c
+	gcc -c $(CFLAGS) -o kwetterd.o kwetterd.c
+	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o
 
 clean:
 	rm -rf *.o kwetterd

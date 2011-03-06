@@ -1,61 +1,16 @@
 
 #include <zmq.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <zdb.h>
 #include <json.h>
+#include <malloc.h>
 
-#define CONNECTION_URL "mysql://kwetter:kwetter@localhost/kwetter"
-
-struct database_connector {
-	ConnectionPool_T pool;
-	URL_T url;
-};
-
-typedef struct database_connector DB_T;
-
-struct session_handle {
-	DB_T *db;
-	void *socket;
-};
-
-typedef struct session_handle KW_T;
-
-static char * s_recv (void *socket) 
-{
-	zmq_msg_t message;
-	zmq_msg_init (&message);
-	if (zmq_recv (socket, &message, 0))
-		return (NULL);
-	int size = zmq_msg_size (&message);
-	char *string = malloc (size + 1);
-	memcpy (string, zmq_msg_data (&message), size);
-	zmq_msg_close (&message);
-	string [size] = 0;
-	return (string);
-}
-
-static int s_send (void *socket, const char *string) 
-{
-	int rc;
-	zmq_msg_t message;
-	zmq_msg_init_size (&message, strlen (string));
-	memcpy (zmq_msg_data (&message), string, strlen (string));
-	rc = zmq_send (socket, &message, 0);
-	zmq_msg_close (&message);
-	return (rc);
-}
+#include "kwetter.h"
 
 inline int qmatch(json_object *string, const char *match)
 {
 	return strncasecmp(json_object_to_json_string(string), match, strlen(match));
-}
-
-int handle_reg(void *socket, json_object *in)
-{
-	return 0;
 }
 
 int handle(KW_T *K, const char *in)
@@ -70,11 +25,13 @@ int handle(KW_T *K, const char *in)
 	printf("received command: %s\n", json_object_to_json_string(cmd));
 	
 	if (qmatch(cmd,"reg"))
-		handle_reg(socket, obj);
+		handle_reg(K, obj);
 
+	// cleanup
 	json_object_put(cmd);
 	json_object_put(obj);
 
+	// done
 	s_send(socket, "OK");
 	return 0;
 }
