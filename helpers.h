@@ -3,6 +3,6 @@
 
 char * s_recv(void *);
 int s_send(void *, const char *);
-
+inline int qmatch(json_object *, const char *);
 
 #endif

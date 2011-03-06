@@ -2,3 +2,4 @@ kwetterd
 *.swp
 *.pyc
 *~
+*.o

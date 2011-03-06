@@ -26,12 +26,22 @@ class Kwetter(object):
     def unreg(self, avatar):
         """
         remove an avatar from the registry
+        >>> conn = Kwetter(SERVER)
+        >>> conn.reg('newname', 'Paul Stevens')
+        'OK'
+        >>> conn.unreg('newname')
+        'OK'
         """
         return self.write(dict(command='unreg',avatar=avatar))
 
     def rereg(self, avatar, newavatar, newfullname):
         """
         update the entry of an avatar in the registry
+        >>> conn = Kwetter(SERVER)
+        >>> conn.reg('othername', 'Paul Stevens')
+        'OK'
+        >>> conn.rereg('othername', 'newname', 'Paul J Stevens')
+        'OK'
         """
         return self.write(dict(command='rereg',avatar=avatar,
                                newavatar=newavatar, newfullname=newfullname))
@@ -39,6 +49,11 @@ class Kwetter(object):
     def info(self, avatar):
         """
         show fullname, followers and followees for avatar
+        >>> conn = Kwetter(SERVER)
+        >>> conn.reg('othername', 'Paul Stevens')
+        'OK'
+        >>> conn.info('othername')
+        '[ "othername", "Paul Stevens" ]'
         """
         return self.write(dict(command='info',avatar=avatar))
 
