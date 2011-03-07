@@ -135,6 +135,10 @@ class Kwetter(object):
     def search(self, avatar, string, since=None, limit=10):
         """
         search for last 'limit' messages containing 'string'
+        >>> conn = Kwetter(SERVER)
+        >>> r = conn.reg('poster', 'Test User')
+        >>> conn.search('poster', 'funky')
+        '{ "avatar": "poster", "string": "funky", ...}'
         """
         if not since: since = datetime.today()+timedelta(days=-7)
         return self.write(dict(command='search', avatar=avatar, string=string,

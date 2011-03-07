@@ -3,6 +3,7 @@
 #include <json.h>
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 #include "kwetter.h"
 
 #define C Connection_T
@@ -285,6 +286,7 @@ int handle_search(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *string = NULL, *since=NULL, *limit=NULL;
 	json_object *result = NULL;
+	char *match;
 
 	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 
@@ -293,17 +295,21 @@ int handle_search(KW_T *K, json_object *in)
 	since = json_object_object_get(in, "since");
 	limit = json_object_object_get(in, "limit");
 
+
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "select owner, message, created from messages "
-				"where message ilike ? and create >= ? limit ?");
+		s = Connection_prepareStatement(c, "select owner, message, created from message "
+				"where message like ? and created >= ? order by created desc limit ?");
 		assert(s);
-		PreparedStatement_setString(s, 1, json_object_get_string(string));
+		match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string) + 3)));
+		sprintf(match, "%%%s%%", json_object_get_string(string));
+		PreparedStatement_setString(s, 1, match);
 		PreparedStatement_setString(s, 2, json_object_get_string(since));
 		PreparedStatement_setInt(s, 3, json_object_get_int(limit));
 
 		r = PreparedStatement_executeQuery(s);
+		free(match);
 		while (r && ResultSet_next(r)) {
 			json_object *row = json_object_new_array();
 			if (! result) result = json_object_new_array();
