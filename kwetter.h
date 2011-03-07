@@ -7,6 +7,7 @@
 #include "helpers.h"
 
 #define CONNECTION_URL "mysql://kwetter:kwetter@localhost/kwetter"
+#define MAX_MESSAGE_SIZE 140
 
 struct database_connector {
 	ConnectionPool_T pool;
@@ -27,7 +28,10 @@ int handle_reg(KW_T *, json_object *);
 int handle_unreg(KW_T *, json_object *);
 int handle_rereg(KW_T *, json_object *);
 int handle_info(KW_T *, json_object *);
-
-	
+int handle_follow(KW_T *, json_object *);
+int handle_unfollow(KW_T *, json_object *);
+int handle_post(KW_T *, json_object *);
+int handle_search(KW_T *, json_object *);
+int handle_timeline(KW_T *, json_object *);
 
 #endif

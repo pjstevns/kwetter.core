@@ -25,6 +25,17 @@ int handle(KW_T *K, const char *in)
 		handle_rereg(K, obj);
 	else if (qmatch(cmd, "info"))
 		handle_info(K, obj);
+	else if (qmatch(cmd, "follow"))
+		handle_follow(K, obj);
+	else if (qmatch(cmd, "unfollow"))
+		handle_unfollow(K, obj);
+	else if (qmatch(cmd, "post"))
+		handle_post(K, obj);
+	else if (qmatch(cmd, "search"))
+		handle_search(K, obj);
+	else if (qmatch(cmd, "timeline"))
+		handle_timeline(K, obj);
+
 	// cleanup
 	json_object_put(cmd);
 	json_object_put(obj);
@@ -46,7 +57,6 @@ void server_start(KW_T *K)
 	while (1) {
 		in = s_recv(K->socket);
 		if (in) {
-			printf("in: %s\n", in);
 			handle(K, in);
 			free(in);
 		} else {
