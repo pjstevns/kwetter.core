@@ -10,6 +10,16 @@
 #define S PreparedStatement_T
 #define R ResultSet_T
 
+#define REG_QUERY   "insert into avatar (handle, fullname) values (?,?)"
+#define UNREG_QUERY "delete from avatar where handle = ?"
+#define REREG_QUERY "update avatar set handle=?, fullname=? where handle=?"
+#define INFO_REG_QUERY "select fullname from avatar where handle=?"
+#define INFO_FOLLOW_QUERY "select rhandle from follow where lhandle=?"
+#define FOLLOW_QUERY "insert into follow (lhandle, rhandle) values (?,?)"
+#define UNFOLLOW_QUERY  "delete from follow where lhandle = ? and rhandle = ?"
+#define POST_QUERY      "insert into message (owner, message, created) values (?,?,NOW())"
+#define SEARCH_QUERY    "select owner, message, created from message where message like ? and created >= ? order by created desc limit ?"
+
 int handle_reg(KW_T *K, json_object *in)
 {
 	C c; S s; volatile int result = 0;
@@ -23,7 +33,7 @@ int handle_reg(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "insert into avatar (handle, fullname) values (?,?)");
+		s = Connection_prepareStatement(c, REG_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(fullname));
@@ -58,7 +68,7 @@ int handle_unreg(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "delete from avatar where handle = ?");
+		s = Connection_prepareStatement(c, UNREG_QUERY);
 		assert(s);
 		PreparedStatement_setString(s,1, json_object_get_string(avatar));
 		PreparedStatement_execute(s);
@@ -94,7 +104,7 @@ int handle_rereg(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "update avatar set handle=?, fullname=? where handle=?");
+		s = Connection_prepareStatement(c, REREG_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(newavatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(newfullname));
@@ -129,7 +139,7 @@ int handle_info(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "select fullname from avatar where handle=?");
+		s = Connection_prepareStatement(c, INFO_REG_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		r = PreparedStatement_executeQuery(s);
@@ -137,7 +147,7 @@ int handle_info(KW_T *K, json_object *in)
 			fullname = json_object_new_string(ResultSet_getString(r, 1));
 		}
 
-		s = Connection_prepareStatement(c, "select rhandle from follow where lhandle=?");
+		s = Connection_prepareStatement(c, INFO_FOLLOW_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		r = PreparedStatement_executeQuery(s);
@@ -187,7 +197,7 @@ int handle_follow(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "insert into follow (lhandle, rhandle) values (?,?)");
+		s = Connection_prepareStatement(c, FOLLOW_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(follow));
@@ -221,7 +231,7 @@ int handle_unfollow(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "delete from follow where lhandle = ? and rhandle = ?");
+		s = Connection_prepareStatement(c, UNFOLLOW_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(follow));
@@ -260,7 +270,7 @@ int handle_post(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "insert into message (owner, message, created) values (?,?,%s)", "NOW()");
+		s = Connection_prepareStatement(c, POST_QUERY);
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(message));
@@ -295,12 +305,10 @@ int handle_search(KW_T *K, json_object *in)
 	since = json_object_object_get(in, "since");
 	limit = json_object_object_get(in, "limit");
 
-
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, "select owner, message, created from message "
-				"where message like ? and created >= ? order by created desc limit ?");
+		s = Connection_prepareStatement(c, SEARCH_QUERY);
 		assert(s);
 		match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string) + 3)));
 		sprintf(match, "%%%s%%", json_object_get_string(string));
