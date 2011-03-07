@@ -1,6 +1,6 @@
 
 # base
-CFLAGS = -Wall -g -O2
+CFLAGS = -Wall -O2
 
 # libjson0
 CFLAGS += $(shell pkg-config --cflags json)

@@ -317,7 +317,7 @@ int handle_search(KW_T *K, json_object *in)
 		Connection_beginTransaction(c);
 		s = Connection_prepareStatement(c, SEARCH_QUERY);
 		assert(s);
-		match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string) + 3)));
+		match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string)) + 3));
 		sprintf(match, "%%%s%%", json_object_get_string(string));
 		PreparedStatement_setString(s, 1, match);
 		PreparedStatement_setString(s, 2, json_object_get_string(since));
