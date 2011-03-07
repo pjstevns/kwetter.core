@@ -282,6 +282,66 @@ int handle_post(KW_T *K, json_object *in)
 
 int handle_search(KW_T *K, json_object *in)
 {
+	C c; S s; R r;
+	json_object *avatar, *string = NULL, *since=NULL, *limit=NULL;
+	json_object *result = NULL;
+
+	printf("%s: %s\n", __func__, json_object_to_json_string(in));
+
+	avatar = json_object_object_get(in, "avatar");
+	string = json_object_object_get(in, "string");
+	since = json_object_object_get(in, "since");
+	limit = json_object_object_get(in, "limit");
+
+	c = ConnectionPool_getConnection(K->db->pool);
+	TRY
+		Connection_beginTransaction(c);
+		s = Connection_prepareStatement(c, "select owner, message, created from messages "
+				"where message ilike ? and create >= ? limit ?");
+		assert(s);
+		PreparedStatement_setString(s, 1, json_object_get_string(string));
+		PreparedStatement_setString(s, 2, json_object_get_string(since));
+		PreparedStatement_setInt(s, 3, json_object_get_int(limit));
+
+		r = PreparedStatement_executeQuery(s);
+		while (r && ResultSet_next(r)) {
+			json_object *row = json_object_new_array();
+			if (! result) result = json_object_new_array();
+
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
+			
+			json_object_array_add(result, row);
+		}
+
+		Connection_commit(c);
+	CATCH(SQLException)
+		Connection_rollback(c);
+	FINALLY
+		Connection_close(c);
+	END_TRY;
+
+	if (result) {
+		json_object *output = json_object_new_object();
+		json_object_object_add(output, "avatar", avatar);
+		json_object_object_add(output, "string", string);
+		json_object_object_add(output, "since", since);
+		json_object_object_add(output, "limit", limit);
+		json_object_object_add(output, "messages", result);
+
+		s_send(K->socket, json_object_to_json_string(output));
+		json_object_put(result);
+		json_object_put(output);
+	} else {
+		s_send(K->socket, "NO");
+	}
+
+	json_object_put(string);
+	json_object_put(since);
+	json_object_put(limit);
+	json_object_put(avatar);
+
 	return 0;
 }
 

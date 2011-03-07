@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import zmq
 import json
+from datetime import datetime, timedelta
 
 SERVER="tcp://localhost:5555"
 
@@ -131,18 +132,20 @@ class Kwetter(object):
         """
         return self.write(dict(command='post',avatar=avatar,message=message))
 
-    def search(self, avatar, string, since, limit):
+    def search(self, avatar, string, since=None, limit=10):
         """
         search for last 'limit' messages containing 'string'
         """
+        if not since: since = datetime.today()+timedelta(days=-7)
         return self.write(dict(command='search', avatar=avatar, string=string,
-                               since=since, limit=limit))
+                               since=str(since), limit=limit))
 
-    def timeline(self, avatar, timestamp):
+    def timeline(self, avatar, since=None):
         """
-        show all messages of subscribed avatars since timestamp
+        show all messages of self and subscribed avatars since 'since'
         """
-        return self.write(dict(command='timeline', avatar=avatar, timestamp=timestamp))
+        if not since: since = datetime.today()+timedelta(days=-7)
+        return self.write(dict(command='timeline', avatar=avatar, since=since))
 
 if __name__ == '__main__':
     import doctest
