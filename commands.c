@@ -352,16 +352,10 @@ int handle_search(KW_T *K, json_object *in)
 		json_object_object_add(output, "messages", result);
 
 		s_send(K->socket, json_object_to_json_string(output));
-		json_object_put(result);
 		json_object_put(output);
 	} else {
 		s_send(K->socket, "NO");
 	}
-
-	json_object_put(string);
-	json_object_put(since);
-	json_object_put(limit);
-	json_object_put(avatar);
 
 	return 0;
 }
@@ -406,14 +400,11 @@ int handle_timeline(KW_T *K, json_object *in)
 		json_object_object_add(output, "since", since);
 		json_object_object_add(output, "messages", result);
 		s_send(K->socket, json_object_to_json_string(output));
-		json_object_put(result);
 		json_object_put(output);
 	} else {
 		s_send(K->socket, "NO");
 	}
 
-	json_object_put(since);
-	json_object_put(avatar);
 	return 0;
 }
 
