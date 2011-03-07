@@ -44,6 +44,7 @@ class Kwetter(object):
         update the entry of an avatar in the registry
         >>> conn = Kwetter(SERVER)
         >>> r = conn.unreg('reregname')
+        >>> r = conn.unreg('newregname')
         >>> conn.reg('reregname', 'Paul Stevens')
         'OK'
         >>> conn.rereg('reregname', 'newreregname', 'Paul J Stevens')
@@ -147,9 +148,24 @@ class Kwetter(object):
     def timeline(self, avatar, since=None):
         """
         show all messages of self and subscribed avatars since 'since'
+        >>> conn = Kwetter(SERVER)
+        >>> r = conn.reg('poster', 'Test User')
+        >>> r = conn.reg('groupie', 'Other User')
+        >>> r = conn.follow('groupie', 'poster')
+        >>> r = conn.post('poster', 'blah message 1')
+        >>> conn.timeline('groupie')
+        '{ "avatar": "groupie", ... }'
+
+        >>> r = conn.post('poster', 'blah message 2')
+        >>> r = conn.post('poster', 'blah message 3')
+        >>> r = conn.post('poster', 'blah message 4')
+        >>> r = conn.post('poster', 'blah message 5')
+        >>> conn.timeline('groupie')
+        '{ "avatar": "groupie", ... }'
         """
         if not since: since = datetime.today()+timedelta(days=-7)
-        return self.write(dict(command='timeline', avatar=avatar, since=since))
+        return self.write(dict(command='timeline', avatar=avatar,
+                               since=str(since)))
 
 if __name__ == '__main__':
     import doctest

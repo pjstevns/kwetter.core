@@ -8,7 +8,9 @@ create table avatar (
 create table follow (
 	lhandle varchar(32) not null,
 	rhandle varchar(32) not null,
+	since datetime not null,
 	unique key following (lhandle, rhandle),
+	key since_index (since),
 	constraint `follow_fk_1` foreign key (lhandle) references avatar(handle) on delete cascade on update cascade
 ) engine=innodb default charset=utf8;
 	

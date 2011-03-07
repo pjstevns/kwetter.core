@@ -10,15 +10,21 @@
 #define S PreparedStatement_T
 #define R ResultSet_T
 
-#define REG_QUERY   "insert into avatar (handle, fullname) values (?,?)"
-#define UNREG_QUERY "delete from avatar where handle = ?"
-#define REREG_QUERY "update avatar set handle=?, fullname=? where handle=?"
-#define INFO_REG_QUERY "select fullname from avatar where handle=?"
-#define INFO_FOLLOW_QUERY "select rhandle from follow where lhandle=?"
-#define FOLLOW_QUERY "insert into follow (lhandle, rhandle) values (?,?)"
-#define UNFOLLOW_QUERY  "delete from follow where lhandle = ? and rhandle = ?"
-#define POST_QUERY      "insert into message (owner, message, created) values (?,?,NOW())"
-#define SEARCH_QUERY    "select owner, message, created from message where message like ? and created >= ? order by created desc limit ?"
+#define REG_QUERY         "INSERT INTO avatar (handle,fullname) VALUES (?,?)"
+#define UNREG_QUERY       "DELETE FROM avatar WHERE handle = ?"
+#define REREG_QUERY       "UPDATE avatar SET handle=?,fullname=? WHERE handle=?"
+#define INFO_REG_QUERY    "SELECT fullname FROM avatar WHERE handle=?"
+#define INFO_FOLLOW_QUERY "SELECT rhandle FROM follow WHERE lhandle=?"
+#define FOLLOW_QUERY      "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,NOW())"
+#define UNFOLLOW_QUERY    "DELETE FROM follow WHERE lhandle = ? AND rhandle = ?"
+#define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,NOW())"
+#define SEARCH_QUERY      "SELECT owner,message,created FROM message " \
+			  "WHERE message LIKE ? AND created >= ? " \
+			  "ORDER BY created DESC LIMIT ?"
+#define TIMELINE_QUERY    "SELECT owner,message,created " \
+       			  "FROM message m JOIN follow f ON m.owner=f.rhandle " \
+			  "WHERE f.lhandle = ? AND m.created >= ? and m.created >= f.since " \
+			  "ORDER BY created DESC"
 
 int handle_reg(KW_T *K, json_object *in)
 {
@@ -113,6 +119,7 @@ int handle_rereg(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		printf("SQLException: %s\n", Exception_frame.message);
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -361,6 +368,52 @@ int handle_search(KW_T *K, json_object *in)
 
 int handle_timeline(KW_T *K, json_object *in)
 {
+	C c; S s; R r;
+	json_object *avatar, *since=NULL;
+	json_object *result = NULL;
+
+	printf("%s: %s\n", __func__, json_object_to_json_string(in));
+
+	avatar = json_object_object_get(in, "avatar");
+	since = json_object_object_get(in, "since");
+	
+	c = ConnectionPool_getConnection(K->db->pool);
+	TRY
+		Connection_beginTransaction(c);
+		s = Connection_prepareStatement(c, TIMELINE_QUERY);
+		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
+		PreparedStatement_setString(s, 2, json_object_get_string(since));
+
+		r = PreparedStatement_executeQuery(s);
+		while (r && ResultSet_next(r)) {
+			json_object *row = json_object_new_array();
+			if (! result) result = json_object_new_array();
+
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
+			json_object_array_add(result, row);
+		}
+		Connection_commit(c);
+	CATCH(SQLException)
+		Connection_rollback(c);
+	FINALLY
+		Connection_close(c);
+	END_TRY;
+
+	if (result) {
+		json_object *output = json_object_new_object();
+		json_object_object_add(output, "avatar", avatar);
+		json_object_object_add(output, "since", since);
+		json_object_object_add(output, "messages", result);
+		s_send(K->socket, json_object_to_json_string(output));
+		json_object_put(result);
+		json_object_put(output);
+	} else {
+		s_send(K->socket, "NO");
+	}
+
+	json_object_put(since);
+	json_object_put(avatar);
 	return 0;
 }
 
