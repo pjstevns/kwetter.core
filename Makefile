@@ -16,6 +16,7 @@ LDFLAGS += -lzdb
 
 kwetterd: kwetterd.o commands.o helpers.o
 	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o
+	strip $@
 
 helpers.o: helpers.c
 	gcc -c $(CFLAGS) -o helpers.o helpers.c

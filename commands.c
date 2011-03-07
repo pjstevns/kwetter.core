@@ -31,8 +31,6 @@ int handle_reg(KW_T *K, json_object *in)
 	C c; S s; volatile int result = 0;
 	json_object *avatar, *fullname;
 
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
-
 	avatar = json_object_object_get(in, "avatar");
 	fullname = json_object_object_get(in, "fullname");
 
@@ -68,7 +66,6 @@ int handle_unreg(KW_T *K, json_object *in)
 	C c; S s; volatile int result = 0;
 	json_object *avatar;
 
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 	avatar = json_object_object_get(in, "avatar");
 
 	c = ConnectionPool_getConnection(K->db->pool);
@@ -101,8 +98,6 @@ int handle_rereg(KW_T *K, json_object *in)
 	C c; S s; volatile int result = 0;
 	json_object *avatar, *newavatar, *newfullname;
 
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
-
 	avatar = json_object_object_get(in, "avatar");
 	newavatar = json_object_object_get(in, "newavatar");
 	newfullname = json_object_object_get(in, "newfullname");
@@ -119,7 +114,6 @@ int handle_rereg(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
-		printf("SQLException: %s\n", Exception_frame.message);
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -138,8 +132,6 @@ int handle_info(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *fullname = NULL, *follows=NULL;
 	json_object *output;
-
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 
 	avatar = json_object_object_get(in, "avatar");
 
@@ -196,8 +188,6 @@ int handle_follow(KW_T *K, json_object *in)
 	C c; S s; volatile int result = 0;
 	json_object *avatar, *follow;
 
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
-
 	avatar = json_object_object_get(in, "avatar");
 	follow = json_object_object_get(in, "follow");
 
@@ -230,8 +220,6 @@ int handle_unfollow(KW_T *K, json_object *in)
 	C c; S s; volatile int result = 0;
 	json_object *avatar, *follow;
 
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
-
 	avatar = json_object_object_get(in, "avatar");
 	follow = json_object_object_get(in, "follow");
 
@@ -263,8 +251,6 @@ int handle_post(KW_T *K, json_object *in)
 {
 	C c; S s; volatile int result = 0;
 	json_object *avatar, *message;
-
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 
 	avatar = json_object_object_get(in, "avatar");
 	message = json_object_object_get(in, "message");
@@ -304,8 +290,6 @@ int handle_search(KW_T *K, json_object *in)
 	json_object *avatar, *string = NULL, *since=NULL, *limit=NULL;
 	json_object *result = NULL;
 	char *match;
-
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 
 	avatar = json_object_object_get(in, "avatar");
 	string = json_object_object_get(in, "string");
@@ -365,8 +349,6 @@ int handle_timeline(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *since=NULL;
 	json_object *result = NULL;
-
-	printf("%s: %s\n", __func__, json_object_to_json_string(in));
 
 	avatar = json_object_object_get(in, "avatar");
 	since = json_object_object_get(in, "since");
