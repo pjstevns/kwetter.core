@@ -1,0 +1,52 @@
+
+license: GPLv3
+copyright: Paul Stevens, 2011, NFG Net Facilities Group BV, paul@nfg.nl
+
+kwetterd: a lightweight high-performance micro-blogging engine
+
+features:
+  - high-performance architecture leveraging some of the coolest 
+    technologies: 0MQ, ZDB, JSON
+    - 0MQ: http://zeromq.org                     low-latency network messaging libary
+    - ZDB: http://www.tildeslash.com/libzdb      database connection pool
+    - JSON: http://oss.metaparadigm.com/json-c/  a json implementation in c
+
+aims:
+  - lightweight: no bloat, no security. The client protocol is the 0MQ protocol. See
+    client.py for example code. Implementing security and access restrictions is up
+    to the client.
+  - scalable: using 0MQ makes horizontal scalability trivial. Currently the client
+    protocol uses the REP/REQ pattern but using a PUB/SUB pattern and a result sink 
+    will allow truly massive horizontal scaling.
+
+motivation:
+  - I needed a small and simple micro-blogging engine for a project. Seemed like 
+    a great project to get my hands dirty on 0MQ, arguably the coolest networking
+    shite since tcp sockets.
+
+installation:
+  - currently still mysql-ish, even though libzdb supports PostgreSQL, Oracle, and 
+    SQLite as well.
+  - install mysql-server, libzdb, json-c, zeromq
+    
+  sudo apt-get install mysql-server libzdb-dev libjson0-dev libzeromq-dev
+  FIXME: libzdb is not yet available on debian/ubuntu. Packages can be gotten by adding
+  to your sources.list:
+
+  deb http://debian.nfgd.net/debian unstable main
+
+  - setup the database
+   
+  mysqladmin create kwetter
+  mysql -e 'grant all on kwetter.* to kwetter@localhost identified by "kwetter"'
+  mysql kwetter < db.sql
+
+  - compile and run
+
+  make
+  ./kwetterd
+
+  - test
+  sudo easy_install zmq
+  python ./client.py
+
