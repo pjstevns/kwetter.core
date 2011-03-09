@@ -16,7 +16,7 @@ aims:
     client.py for example code. Implementing security and access restrictions is up
     to the client.
   - scalable: using 0MQ makes horizontal scalability trivial. Currently the client
-    protocol uses the REP/REQ pattern but using a PUB/SUB pattern and a result sink 
+    protocol uses the REP/REQ pattern so using fan-out/fan-in patterns
     will allow truly massive horizontal scaling.
 
 motivation:
