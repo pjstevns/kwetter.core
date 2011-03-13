@@ -33,6 +33,6 @@ int s_send (void *socket, const char *string)
 
 inline int qmatch(json_object *string, const char *match)
 {
-	return (strncasecmp(json_object_get_string(string), match, strlen(match)) == 0);
+	return (string && match && (strncasecmp(json_object_get_string(string), match, strlen(match)) == 0));
 }
 

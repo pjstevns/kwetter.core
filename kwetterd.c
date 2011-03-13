@@ -13,6 +13,7 @@ int handle(KW_T *K, const char *in)
 {
 	json_object *obj, *cmd;
 
+	printf("in: [%s]\n", in);
 	obj = json_tokener_parse(in);
 
 	cmd = json_object_object_get(obj, "command");
