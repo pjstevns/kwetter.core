@@ -361,10 +361,9 @@ int handle_timeline(KW_T *K, json_object *in)
 		PreparedStatement_setString(s, 2, json_object_get_string(since));
 
 		r = PreparedStatement_executeQuery(s);
+		result = json_object_new_array();
 		while (r && ResultSet_next(r)) {
 			json_object *row = json_object_new_array();
-			if (! result) result = json_object_new_array();
-
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(result, row);
