@@ -1,0 +1,7 @@
+
+
+  http-client <--> mongrel2 (REQ) <--> (REP) kwetter-m2 (REQ) <--> (REP) kwetterd
+
+  http-client talks JSON over HTTP with Mongrel2
+  all other channels are 0MQ
+  
