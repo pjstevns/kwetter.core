@@ -1,28 +1,30 @@
 #!/usr/bin/python
 """
-example kwetter client which talks 0MQ directly to kwetterd.
+example kwetter client which talks JSON over HTTP to mongrel2
 """
 
-import zmq
 import json
+import urllib2
 from datetime import datetime, timedelta
 
-SERVER="tcp://localhost:5555"
+SERVER="http://localhost:6767"
 
-class Kwetter(object):
+class M2Kwetter(object):
     def __init__(self, server):
-        context = zmq.Context()
-        self.socket = context.socket(zmq.REQ)
-        self.socket.connect(server)
+        self.server = server
 
     def write(self, message): 
-        self.socket.send(json.dumps(message,separators=(',',':')))
-        return self.socket.recv()
+        req = urllib2.Request(url=self.server, 
+                              data=json.dumps(message,separators=(',',':')),
+                              headers={'Content-Type':'application/json'},
+                             )
+        rep = urllib2.urlopen(req)
+        return rep.read().strip()
 
     def reg(self, avatar, fullname):
         """
         register a new avatar
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('regname')
         >>> conn.reg('regname', 'Paul Stevens')
         'OK'
@@ -34,7 +36,7 @@ class Kwetter(object):
     def unreg(self, avatar):
         """
         remove an avatar from the registry
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('unregname')
         >>> conn.reg('unregname', 'Paul Stevens')
         'OK'
@@ -46,7 +48,7 @@ class Kwetter(object):
     def rereg(self, avatar, newavatar, newfullname):
         """
         update the entry of an avatar in the registry
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('reregname')
         >>> r = conn.unreg('newregname')
         >>> conn.reg('reregname', 'Paul Stevens')
@@ -62,7 +64,7 @@ class Kwetter(object):
     def info(self, avatar):
         """
         show fullname, followers and followees for avatar
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('infoname')
         >>> conn.reg('infoname', 'Paul Stevens')
         'OK'
@@ -84,7 +86,7 @@ class Kwetter(object):
     def follow(self, avatar, follow):
         """
         subscribe to messages from other avatar
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('follower')
         >>> r = conn.unreg('followee')
         >>> conn.reg('follower','Joe')
@@ -105,7 +107,7 @@ class Kwetter(object):
     def unfollow(self, avatar, follow):
         """
         unsubscribe from messages from other avatar
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.unreg('follower')
         >>> r = conn.unreg('followee')
         >>> conn.reg('follower','Joe')
@@ -130,7 +132,7 @@ class Kwetter(object):
     def post(self, avatar, message):
         """
         post a new message
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.reg('poster', 'Test User')
         >>> conn.post('poster', 'some funky message')
         'OK'
@@ -140,7 +142,7 @@ class Kwetter(object):
     def search(self, avatar, string, since=None, limit=10):
         """
         search for last 'limit' messages containing 'string'
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.reg('poster', 'Test User')
         >>> conn.search('poster', 'funky')
         '{ "avatar": "poster", "string": "funky", ...}'
@@ -152,7 +154,7 @@ class Kwetter(object):
     def timeline(self, avatar, since=None):
         """
         show all messages of self and subscribed avatars since 'since'
-        >>> conn = Kwetter(SERVER)
+        >>> conn = M2Kwetter(SERVER)
         >>> r = conn.reg('poster', 'Test User')
         >>> r = conn.reg('groupie', 'Other User')
         >>> r = conn.follow('groupie', 'poster')
