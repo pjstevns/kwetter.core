@@ -24,7 +24,7 @@
 #define TIMELINE_QUERY    "SELECT owner,message,created " \
        			  "FROM message m JOIN follow f ON m.owner=f.rhandle " \
 			  "WHERE f.lhandle = ? AND m.created >= ? and m.created >= f.since " \
-			  "UNION SELECT owner,message,created FROM message m WHERE m.owner=? AND m.created >= ? ORDER BY created DESC " \
+			  "UNION SELECT owner,message,created FROM message m WHERE m.owner=? AND m.created >= ? " \
 			  "ORDER BY created DESC"
 
 int handle_reg(KW_T *K, json_object *in)
@@ -369,6 +369,7 @@ int handle_timeline(KW_T *K, json_object *in)
 			json_object *row = json_object_new_array();
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
 			json_object_array_add(result, row);
 		}
 		Connection_commit(c);
