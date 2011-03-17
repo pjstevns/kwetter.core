@@ -97,6 +97,7 @@ Response* Kwetter::handle(const m2pp::request& req)
 	}
 	response << std::endl;
 
+	std::cout << req.body << std::endl;
 	std::cout << response.str();
 	std::cout << "length: " << response.tellp() << std::endl;
 
