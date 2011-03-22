@@ -21,6 +21,9 @@
 #define SEARCH_QUERY      "SELECT owner,message,created FROM message " \
 			  "WHERE message LIKE ? AND created >= ? " \
 			  "ORDER BY created DESC LIMIT ?"
+#define LIST_QUERY        "SELECT owner,message,created FROM message " \
+			  "WHERE created >= ? " \
+			  "ORDER BY created DESC LIMIT ?"
 #define TIMELINE_QUERY    "SELECT owner,message,created " \
        			  "FROM message m JOIN follow f ON m.owner=f.rhandle " \
 			  "WHERE f.lhandle = ? AND m.created >= ? and m.created >= f.since " \
@@ -290,7 +293,7 @@ int handle_search(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *string = NULL, *since=NULL, *limit=NULL;
 	json_object *result = NULL;
-	char *match;
+	char *match = NULL;
 
 	avatar = json_object_object_get(in, "avatar");
 	string = json_object_object_get(in, "string");
@@ -300,16 +303,24 @@ int handle_search(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, SEARCH_QUERY);
-		assert(s);
-		match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string)) + 3));
-		sprintf(match, "%%%s%%", json_object_get_string(string));
-		PreparedStatement_setString(s, 1, match);
-		PreparedStatement_setString(s, 2, json_object_get_string(since));
-		PreparedStatement_setInt(s, 3, json_object_get_int(limit));
+		if (strlen(json_object_get_string(string))) {
+			s = Connection_prepareStatement(c, SEARCH_QUERY);
+			assert(s);
+			match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string)) + 3));
+			sprintf(match, "%%%s%%", json_object_get_string(string));
+			PreparedStatement_setString(s, 1, match);
+			PreparedStatement_setString(s, 2, json_object_get_string(since));
+			PreparedStatement_setInt(s, 3, json_object_get_int(limit));
+		} else {
+			s = Connection_prepareStatement(c, LIST_QUERY);
+			assert(s);
+			PreparedStatement_setString(s, 1, json_object_get_string(since));
+			PreparedStatement_setInt(s, 2, json_object_get_int(limit));
+		}
 
 		r = PreparedStatement_executeQuery(s);
-		free(match);
+		if (match) free(match);
+
 		while (r && ResultSet_next(r)) {
 			json_object *row = json_object_new_array();
 			if (! result) result = json_object_new_array();
