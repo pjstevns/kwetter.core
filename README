@@ -47,6 +47,6 @@ installation:
   ./kwetterd
 
   - test
-  sudo easy_install zmq
+  sudo easy_install pyzmq
   python ./client.py
 

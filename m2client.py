@@ -139,7 +139,7 @@ class M2Kwetter(object):
         """
         return self.write(dict(command='post',avatar=avatar,message=message))
 
-    def search(self, avatar, string, since=None, limit=10):
+    def search(self, avatar, string=None, since=None, limit=10):
         """
         search for last 'limit' messages containing 'string'
         >>> conn = M2Kwetter(SERVER)
@@ -148,6 +148,7 @@ class M2Kwetter(object):
         '{ "avatar": "poster", "string": "funky", ...}'
         """
         if not since: since = datetime.today()+timedelta(days=-7)
+        if not string: string=""
         return self.write(dict(command='search', avatar=avatar, string=string,
                                since=str(since), limit=limit))
 
