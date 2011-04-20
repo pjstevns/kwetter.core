@@ -10,12 +10,16 @@ CFLAGS += $(shell pkg-config --cflags json)
 LDFLAGS += $(shell pkg-config --libs json)
 
 # libzmq
-CFLAGS += $(shell pkg-config --cflags libzmq)
-LDFLAGS += $(shell pkg-config --libs libzmq)
+ZMQ_CFLAGS?=$(shell pkg-config --cflags libzmq)
+CFLAGS += $(ZMQ_CFLAGS)
+ZMQ_LDFLAGS?=$(shell pkg-config --libs libzmq)
+LDFLAGS += $(ZMQ_LDFLAGS)
 
 # libzdb
-CFLAGS += -I /usr/include/zdb
-LDFLAGS += -L/usr/local/lib -lzdb 
+ZDB_CFLAGS?=-I /usr/include/zdb
+CFLAGS += $(ZDB_CFLAGS)
+ZDB_LDFLAGS?= -L/usr/local/lib -lzdb 
+LDFLAGS += $(ZDB_LDFLAGS)
 
 all: kwetterd kwetter-m2
 
