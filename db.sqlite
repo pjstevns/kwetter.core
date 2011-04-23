@@ -1,0 +1,113 @@
+
+create table avatar (
+	handle text not null primary key,
+	fullname text not null
+);
+
+create table follow (
+	lhandle text not null,
+	rhandle text not null,
+	since datetime not null
+);
+
+create index since_index on follow(since);
+create unique index following on follow(lhandle, rhandle);
+
+CREATE TRIGGER fk_insert_follow_lhandle_avatar
+        BEFORE INSERT ON follow
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.lhandle IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE avatar = new.lhandle) IS NULL)
+                        THEN RAISE (ABORT, 'insert on table "follow" violates foreign key constraint "fk_insert_follow_lhandle_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update1_follow_lhandle_avatar
+        BEFORE UPDATE ON follow
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.lhandle IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE avatar = new.lhandle) IS NULL)
+                        THEN RAISE (ABORT, 'update on table "follow" violates foreign key constraint "fk_update1_follow_lhandle_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update2_follow_lhandle_avatar
+        AFTER UPDATE ON avatar
+        FOR EACH ROW BEGIN
+                UPDATE follow SET lhandle = new.handle WHERE lhandle = OLD.handle;
+        END;
+CREATE TRIGGER fk_delete_follow_lhandle_avatar
+        BEFORE DELETE ON avatar
+        FOR EACH ROW BEGIN
+                DELETE FROM follow WHERE lhandle = OLD.handle;
+        END;
+	
+CREATE TRIGGER fk_insert_follow_rhandle_avatar
+        BEFORE INSERT ON follow
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.rhandle IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE avatar = new.rhandle) IS NULL)
+                        THEN RAISE (ABORT, 'insert on table "follow" violates foreign key constraint "fk_insert_follow_rhandle_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update1_follow_rhandle_avatar
+        BEFORE UPDATE ON follow
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.rhandle IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE avatar = new.rhandle) IS NULL)
+                        THEN RAISE (ABORT, 'update on table "follow" violates foreign key constraint "fk_update1_follow_rhandle_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update2_follow_rhandle_avatar
+        AFTER UPDATE ON avatar
+        FOR EACH ROW BEGIN
+                UPDATE follow SET rhandle = new.handle WHERE rhandle = OLD.handle;
+        END;
+CREATE TRIGGER fk_delete_follow_rhandle_avatar
+        BEFORE DELETE ON avatar
+        FOR EACH ROW BEGIN
+                DELETE FROM follow WHERE rhandle = OLD.handle;
+        END;
+
+
+create table message (
+	owner text not null,
+	message text not null,
+	created datetime not null
+);
+
+create index owner_index on message (owner);
+create index message_index on message (message);
+create index message_create_index on message (created);
+
+CREATE TRIGGER fk_insert_message_avatar
+        BEFORE INSERT ON message
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.owner IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.owner) IS NULL)
+                        THEN RAISE (ABORT, 'insert on table "message" violates foreign key constraint "fk_insert_message_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update1_message_avatar
+        BEFORE UPDATE ON message
+        FOR EACH ROW BEGIN
+                SELECT CASE 
+                        WHEN (new.owner IS NOT NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.owner) IS NULL)
+                        THEN RAISE (ABORT, 'update on table "message" violates foreign key constraint "fk_update2_message_avatar"')
+                END;
+        END;
+CREATE TRIGGER fk_update2_message_avatar
+        AFTER UPDATE ON avatar
+        FOR EACH ROW BEGIN
+                UPDATE message SET owner = new.handle WHERE owner = OLD.handle;
+        END;
+CREATE TRIGGER fk_delete_message_avatar
+        BEFORE DELETE ON avatar
+        FOR EACH ROW BEGIN
+                DELETE FROM message WHERE owner = OLD.handle;
+        END;
+

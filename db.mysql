@@ -11,7 +11,8 @@ create table follow (
 	since datetime not null,
 	unique key following (lhandle, rhandle),
 	key since_index (since),
-	constraint `follow_fk_1` foreign key (lhandle) references avatar(handle) on delete cascade on update cascade
+	constraint `follow_fk_1` foreign key (lhandle) references avatar(handle) on delete cascade on update cascade,
+	constraint `follow_fk_2` foreign key (rhandle) references avatar(handle) on delete cascade on update cascade
 ) engine=innodb default charset=utf8;
 	
 create table message (
