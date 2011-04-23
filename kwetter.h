@@ -6,7 +6,11 @@
 #include <zdb.h>
 #include "helpers.h"
 
-#define CONNECTION_URL "mysql://kwetter:kwetter@127.0.0.1/kwetter"
+//#define CONNECTION_URL "mysql://kwetter:kwetter@127.0.0.1/kwetter"
+#ifndef CONNECTION_URL
+#define CONNECTION_URL "sqlite:///var/tmp/kwetter.db"
+#endif
+
 #define MAX_MESSAGE_SIZE 140
 
 struct database_connector {

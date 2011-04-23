@@ -15,9 +15,9 @@
 #define REREG_QUERY       "UPDATE avatar SET handle=?,fullname=? WHERE handle=?"
 #define INFO_REG_QUERY    "SELECT fullname FROM avatar WHERE handle=?"
 #define INFO_FOLLOW_QUERY "SELECT rhandle FROM follow WHERE lhandle=?"
-#define FOLLOW_QUERY      "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,NOW())"
+#define FOLLOW_QUERY      "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,STRFTIME('%Y-%m-%d %H:%M:%S','now','localtime'))"
 #define UNFOLLOW_QUERY    "DELETE FROM follow WHERE lhandle = ? AND rhandle = ?"
-#define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,NOW())"
+#define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,STRFTIME('%Y-%m-%d %H:%M:%S','now','localtime'))"
 #define SEARCH_QUERY      "SELECT owner,message,created FROM message " \
 			  "WHERE message LIKE ? AND created >= ? " \
 			  "ORDER BY created DESC LIMIT ?"
