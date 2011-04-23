@@ -5,6 +5,10 @@ LIBS=-lzmq -ljson -lm2pp
 # base
 CFLAGS = -Wall -O2 -g
 
+# mongrel2
+M2PP_CFLAGS?=
+M2PP_LDFLAGS?=
+
 # libjson0
 CFLAGS += $(shell pkg-config --cflags json)
 LDFLAGS += $(shell pkg-config --libs json)
@@ -38,10 +42,10 @@ kwetterd.o: kwetterd.c
 
 # mongrel2 handler
 kwetter-m2: kwetter-m2.o
-	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) kwetter-m2.o $(LIBS)
+	$(CXX) -o $@ $(CXXFLAGS) $(M2PP_CFLAGS) $(M2PP_LDFLAGS) $(LDFLAGS) kwetter-m2.o $(LIBS)
 
 kwetter-m2.o: kwetter-m2.cpp
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(M2PP_CFLAGS) $(ZMQ_CFLAGS) -o $@ -c $<
 
 clean:
 	rm -rf *.o kwetterd kwetter-m2
