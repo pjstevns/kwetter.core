@@ -1,4 +1,7 @@
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <zmq.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -7,6 +10,22 @@
 #include <malloc.h>
 
 #include "kwetter.h"
+
+void config_read(KW_T *K, const char * filename)
+{
+	int fd;
+	char data[2048];
+       	if ((fd = open(filename, O_RDONLY)) < 0) {
+		perror("opening config file failed");
+		_exit(1);
+	}
+	memset(data,0,sizeof(data));
+	if ((read(fd, data, sizeof(data))) < 0) {
+		perror("reading config file failed");
+		_exit(1);
+	}
+	K->config = json_tokener_parse(data);
+}
 
 int handle(KW_T *K, const char *in)
 {
@@ -51,7 +70,16 @@ void server_start(KW_T *K)
 	char *in;
 	void *context = zmq_init(1);
 	void *socket = zmq_socket(context, ZMQ_REP);
-	zmq_bind(socket, "tcp://*:5555");
+	json_object *channel, *command;
+	const char *cmdchan;
+
+	channel = json_object_object_get(K->config, "channel");
+	command = json_object_object_get(channel, "command");
+	cmdchan = json_object_get_string(command);
+
+	printf("channel[command]: %s\n", cmdchan);
+
+	zmq_bind(socket, cmdchan);
 	K->socket = socket;
 
 	while (1) {
@@ -66,11 +94,16 @@ void server_start(KW_T *K)
 	zmq_close(socket);
 	zmq_term(context);
 }
-
 int database_connect(KW_T *K)
 {
-	printf("using database url: %s\n", CONNECTION_URL);
-	K->db->url = URL_new(CONNECTION_URL);
+	json_object *database = json_object_object_get(K->config, "database");
+	json_object *url = json_object_object_get(database, "url");
+	const char *dburl = json_object_get_string(url);
+	printf("database[url]: %s\n", dburl);
+
+	K->db = (DB_T *)malloc(sizeof(DB_T));
+
+	K->db->url = URL_new(dburl);
 	assert(K->db->url);
 	K->db->pool = ConnectionPool_new(K->db->url);
 	assert(K->db->pool);
@@ -82,13 +115,20 @@ int database_connect(KW_T *K)
 
 int main(int nargs, char **argv)
 {
-	KW_T K;
-	printf("nargs: %d\n", nargs);
-	while (--nargs >= 0)
-		printf("arg[%d]: %s\n", nargs, argv[nargs]);
+	KW_T *K = (KW_T *)malloc(sizeof (KW_T));
 
-	database_connect(&K);
-	server_start(&K);
+	if (nargs == 2)
+		config_read(K, argv[1]);
+	else {
+		printf("missing config file: kwetterd <config-file>\n");
+		_exit(1);
+	}
+
+	database_connect(K);
+	server_start(K);
+	free(K->db);
+	free(K);
+
 	return 0;
 }
 

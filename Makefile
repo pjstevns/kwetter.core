@@ -3,7 +3,7 @@ CXXFLAGS=-ggdb -Wall -Wextra
 LIBS=-lzmq -ljson -lm2pp
 
 # base
-CFLAGS = -Wall -O2 -g
+CFLAGS = -Wall -g
 
 # mongrel2
 M2PP_CFLAGS?=
@@ -28,11 +28,8 @@ LDFLAGS += $(ZDB_LDFLAGS)
 all: kwetterd kwetter-m2
 
 ## main daemon
-kwetterd: kwetterd.o commands.o helpers.o kw_config.o
-	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o kw_config.o
-
-kw_config.o: kw_config.c
-	gcc -c $(CFLAGS) -o kw_config.o kw_config.c
+kwetterd: kwetterd.o commands.o helpers.o
+	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o
 
 helpers.o: helpers.c
 	gcc -c $(CFLAGS) -o helpers.o helpers.c

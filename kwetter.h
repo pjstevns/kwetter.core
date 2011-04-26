@@ -5,7 +5,6 @@
 
 #include <zdb.h>
 #include "helpers.h"
-#include "kw_config.h"
 
 //#define CONNECTION_URL "mysql://kwetter:kwetter@127.0.0.1/kwetter"
 #define CONNECTION_URL "sqlite:///var/tmp/kwetter.db"
@@ -20,6 +19,7 @@ struct database_connector {
 typedef struct database_connector DB_T;
 
 struct session_handle {
+	json_object *config;
 	DB_T *db;
 	void *socket;
 };
