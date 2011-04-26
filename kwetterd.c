@@ -13,17 +13,39 @@
 
 void config_read(KW_T *K, const char * filename)
 {
-	int fd;
+	int fd, result;
 	char data[2048];
+	char buf = 0;
+	int off = 0, inquote=0, incomment=0;
        	if ((fd = open(filename, O_RDONLY)) < 0) {
 		perror("opening config file failed");
 		_exit(1);
 	}
 	memset(data,0,sizeof(data));
-	if ((read(fd, data, sizeof(data))) < 0) {
-		perror("reading config file failed");
-		_exit(1);
+	while (off < sizeof(data)) {
+		if ( (result = read(fd, &buf, sizeof(buf))) < 0) {
+			perror("reading config file failed");
+			_exit(1);
+		}
+		if (result == 0) break;
+
+		// strip comments
+		if (buf == '"' && inquote == 0) {
+			inquote=1;
+		} else if (buf == '"' && inquote == 1) {
+			inquote=0;
+		} else if (buf == '#' && inquote == 0) {
+			incomment=1;
+			continue;
+		} else if (buf == '\n') {
+			incomment=0;
+		} else if (incomment == 1) {
+			continue;
+		}
+
+		data[off++] = buf;
 	}
+
 	K->config = json_tokener_parse(data);
 }
 
