@@ -15,9 +15,9 @@
 #define REREG_QUERY       "UPDATE avatar SET handle=?,fullname=? WHERE handle=?"
 #define INFO_REG_QUERY    "SELECT fullname FROM avatar WHERE handle=?"
 #define INFO_FOLLOW_QUERY "SELECT rhandle FROM follow WHERE lhandle=?"
-#define FOLLOW_QUERY      "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,STRFTIME('%%Y-%%m-%%d %%H:%%M:%%S','now','localtime'))"
+#define FOLLOW_QUERY      "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,%s)"
 #define UNFOLLOW_QUERY    "DELETE FROM follow WHERE lhandle = ? AND rhandle = ?"
-#define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,STRFTIME('%%Y-%%m-%%d %%H:%%M:%%S','now','localtime'))"
+#define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,%s)"
 #define SEARCH_QUERY      "SELECT owner,message,created FROM message " \
 			  "WHERE message LIKE ? AND created >= ? " \
 			  "ORDER BY created DESC LIMIT ?"
@@ -29,6 +29,57 @@
 			  "WHERE f.lhandle = ? AND m.created >= ? and m.created >= f.since " \
 			  "UNION SELECT owner,message,created FROM message m WHERE m.owner=? AND m.created >= ? " \
 			  "ORDER BY created DESC"
+
+#define LOG_SQLERROR printf("SQL Exception: %s\n", Exception_frame.message)
+
+typedef enum {
+	SQL_CURRENT_TIMESTAMP
+} sql_frag_t;
+
+const char * get_sql_mysql(KW_T *K, sql_frag_t key)
+{
+	switch(key) {
+		case SQL_CURRENT_TIMESTAMP:
+			return "CURRENT_TIMESTAMP";
+		break;
+	}
+	return "";
+}
+const char * get_sql_sqlite(KW_T *K, sql_frag_t key)
+{
+	switch(key) {
+		case SQL_CURRENT_TIMESTAMP:
+			return "STRFTIME('%Y-%m-%d %H:%M:%S','now','localtime')";
+		break;
+	}
+	return "";
+}
+const char * get_sql_postgresql(KW_T *K, sql_frag_t key)
+{
+	switch(key) {
+		case SQL_CURRENT_TIMESTAMP:
+			return "CURRENT_TIMESTAMP";
+		break;
+	}
+	return "";
+}
+
+const char * get_sql(KW_T *K, sql_frag_t key)
+{
+	const char *proto = URL_getProtocol(K->db->url);
+	const char *sql = "";
+		
+	if (strncasecmp("mysql", proto, 5)==0)
+		sql = get_sql_mysql(K, key);
+	if (strncasecmp("sqlite", proto, 6)==0)
+		sql = get_sql_sqlite(K, key);
+	if (strncasecmp("postgresql", proto, 10)==0)
+		sql = get_sql_postgresql(K, key);
+
+	//printf("SQL: %s\n", sql);
+		
+	return sql;
+}
 
 int handle_reg(KW_T *K, json_object *in)
 {
@@ -49,6 +100,7 @@ int handle_reg(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -82,6 +134,7 @@ int handle_unreg(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -118,6 +171,7 @@ int handle_rereg(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -161,6 +215,7 @@ int handle_info(KW_T *K, json_object *in)
 
 		Connection_commit(c);
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -198,7 +253,7 @@ int handle_follow(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, FOLLOW_QUERY);
+		s = Connection_prepareStatement(c, FOLLOW_QUERY, get_sql(K, SQL_CURRENT_TIMESTAMP));
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(follow));
@@ -206,6 +261,7 @@ int handle_follow(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -238,6 +294,7 @@ int handle_unfollow(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -267,7 +324,7 @@ int handle_post(KW_T *K, json_object *in)
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
 		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, POST_QUERY);
+		s = Connection_prepareStatement(c, POST_QUERY, get_sql(K, SQL_CURRENT_TIMESTAMP));
 		assert(s);
 		PreparedStatement_setString(s, 1, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 2, json_object_get_string(message));
@@ -275,6 +332,7 @@ int handle_post(KW_T *K, json_object *in)
 		Connection_commit(c);
 		result = 1;
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -334,6 +392,7 @@ int handle_search(KW_T *K, json_object *in)
 
 		Connection_commit(c);
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);
@@ -385,6 +444,7 @@ int handle_timeline(KW_T *K, json_object *in)
 		}
 		Connection_commit(c);
 	CATCH(SQLException)
+		LOG_SQLERROR;
 		Connection_rollback(c);
 	FINALLY
 		Connection_close(c);

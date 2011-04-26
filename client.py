@@ -142,6 +142,8 @@ class Kwetter(object):
         search for last 'limit' messages containing 'string'
         >>> conn = Kwetter(SERVER)
         >>> r = conn.reg('poster', 'Test User')
+        >>> conn.post('poster', 'some funky message')
+        'OK'
         >>> conn.search('poster', 'funky')
         '{ "avatar": "poster", "string": "funky", ...}'
         >>> conn.search('poster')

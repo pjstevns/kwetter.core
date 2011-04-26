@@ -18,7 +18,7 @@ CREATE TRIGGER fk_insert_follow_lhandle_avatar
         FOR EACH ROW BEGIN
                 SELECT CASE 
                         WHEN (new.lhandle IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE avatar = new.lhandle) IS NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.lhandle) IS NULL)
                         THEN RAISE (ABORT, 'insert on table "follow" violates foreign key constraint "fk_insert_follow_lhandle_avatar"')
                 END;
         END;
@@ -27,7 +27,7 @@ CREATE TRIGGER fk_update1_follow_lhandle_avatar
         FOR EACH ROW BEGIN
                 SELECT CASE 
                         WHEN (new.lhandle IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE avatar = new.lhandle) IS NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.lhandle) IS NULL)
                         THEN RAISE (ABORT, 'update on table "follow" violates foreign key constraint "fk_update1_follow_lhandle_avatar"')
                 END;
         END;
@@ -47,7 +47,7 @@ CREATE TRIGGER fk_insert_follow_rhandle_avatar
         FOR EACH ROW BEGIN
                 SELECT CASE 
                         WHEN (new.rhandle IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE avatar = new.rhandle) IS NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.rhandle) IS NULL)
                         THEN RAISE (ABORT, 'insert on table "follow" violates foreign key constraint "fk_insert_follow_rhandle_avatar"')
                 END;
         END;
@@ -56,7 +56,7 @@ CREATE TRIGGER fk_update1_follow_rhandle_avatar
         FOR EACH ROW BEGIN
                 SELECT CASE 
                         WHEN (new.rhandle IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE avatar = new.rhandle) IS NULL)
+                                AND ((SELECT handle FROM avatar WHERE handle = new.rhandle) IS NULL)
                         THEN RAISE (ABORT, 'update on table "follow" violates foreign key constraint "fk_update1_follow_rhandle_avatar"')
                 END;
         END;
