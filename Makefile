@@ -28,8 +28,11 @@ LDFLAGS += $(ZDB_LDFLAGS)
 all: kwetterd kwetter-m2
 
 ## main daemon
-kwetterd: kwetterd.o commands.o helpers.o
-	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o
+kwetterd: kwetterd.o commands.o helpers.o kw_config.o
+	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o kw_config.o
+
+kw_config.o: kw_config.c
+	gcc -c $(CFLAGS) -o kw_config.o kw_config.c
 
 helpers.o: helpers.c
 	gcc -c $(CFLAGS) -o helpers.o helpers.c

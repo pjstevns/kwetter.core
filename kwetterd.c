@@ -8,7 +8,6 @@
 
 #include "kwetter.h"
 
-
 int handle(KW_T *K, const char *in)
 {
 	json_object *obj, *cmd;
@@ -70,6 +69,7 @@ void server_start(KW_T *K)
 
 int database_connect(KW_T *K)
 {
+	printf("using database url: %s\n", CONNECTION_URL);
 	K->db->url = URL_new(CONNECTION_URL);
 	assert(K->db->url);
 	K->db->pool = ConnectionPool_new(K->db->url);
@@ -80,9 +80,13 @@ int database_connect(KW_T *K)
 	return 0;
 }
 
-int main()
+int main(int nargs, char **argv)
 {
 	KW_T K;
+	printf("nargs: %d\n", nargs);
+	while (--nargs >= 0)
+		printf("arg[%d]: %s\n", nargs, argv[nargs]);
+
 	database_connect(&K);
 	server_start(&K);
 	return 0;
