@@ -30,22 +30,26 @@ void config_read(KW_T *K, const char * filename)
 		if (result == 0) break;
 
 		// strip comments
-		if (buf == '"' && inquote == 0) {
+		if (buf == '\n') {
+			incomment=0;
+			continue;
+		} else if (incomment == 1) {
+			continue;
+		} else if (buf == '"' && inquote == 0) {
 			inquote=1;
 		} else if (buf == '"' && inquote == 1) {
 			inquote=0;
 		} else if (buf == '#' && inquote == 0) {
 			incomment=1;
 			continue;
-		} else if (buf == '\n') {
-			incomment=0;
-		} else if (incomment == 1) {
+		} else if ((inquote == 0) && (buf == '\t' || buf == ' ')) {
 			continue;
 		}
 
 		data[off++] = buf;
 	}
 
+	//printf("data:[%s]\n", data);
 	K->config = json_tokener_parse(data);
 }
 
