@@ -99,6 +99,11 @@ int database_connect(KW_T *K)
 	json_object *database = json_object_object_get(K->config, "database");
 	json_object *url = json_object_object_get(database, "url");
 	const char *dburl = json_object_get_string(url);
+	if (! Connection_isSupported(dburl)) {
+		printf("database not supported: %s\n", dburl);
+		_exit(1);
+	}
+
 	printf("database[url]: %s\n", dburl);
 
 	K->db = (DB_T *)malloc(sizeof(DB_T));
