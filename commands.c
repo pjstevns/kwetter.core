@@ -19,7 +19,7 @@
 #define UNFOLLOW_QUERY    "DELETE FROM follow WHERE lhandle = ? AND rhandle = ?"
 #define POST_QUERY        "INSERT INTO message (owner,message,created) VALUES (?,?,%s)"
 #define SEARCH_QUERY      "SELECT owner,message,created FROM message " \
-			  "WHERE message LIKE ? AND created >= ? " \
+			  "WHERE message LIKE '%%' || ? || '%%' AND created >= ? " \
 			  "ORDER BY created DESC LIMIT ?"
 #define LIST_QUERY        "SELECT owner,message,created FROM message " \
 			  "WHERE created >= ? " \
@@ -351,7 +351,6 @@ int handle_search(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *string = NULL, *since=NULL, *limit=NULL;
 	json_object *result = NULL;
-	char *match = NULL;
 
 	avatar = json_object_object_get(in, "avatar");
 	string = json_object_object_get(in, "string");
@@ -364,9 +363,7 @@ int handle_search(KW_T *K, json_object *in)
 		if (strlen(json_object_get_string(string))) {
 			s = Connection_prepareStatement(c, SEARCH_QUERY);
 			assert(s);
-			match = (char *)malloc(sizeof(char) * (strlen(json_object_get_string(string)) + 3));
-			sprintf(match, "%%%s%%", json_object_get_string(string));
-			PreparedStatement_setString(s, 1, match);
+			PreparedStatement_setString(s, 1, json_object_get_string(string));
 			PreparedStatement_setString(s, 2, json_object_get_string(since));
 			PreparedStatement_setInt(s, 3, json_object_get_int(limit));
 		} else {
@@ -377,7 +374,6 @@ int handle_search(KW_T *K, json_object *in)
 		}
 
 		r = PreparedStatement_executeQuery(s);
-		if (match) free(match);
 
 		while (r && ResultSet_next(r)) {
 			json_object *row = json_object_new_array();
