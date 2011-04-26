@@ -25,9 +25,21 @@ motivation:
     shite since tcp sockets.
 
 installation:
-  - currently still mysql-ish, even though libzdb supports PostgreSQL, Oracle, and 
-    SQLite as well.
-  - install mysql-server, libzdb, json-c, zeromq
+  - like libzdb supports PostgreSQL, Oracle, and SQLite as well. For now no Oracle 
+    schema is included.
+  - install libzdb, json-c, zeromq
+  - install database server of choise (sqlite3, mysql-server, postgresql)
+  - create database:
+    * mysql:
+	mysqladmin create kwetter
+	mysql -e "grant all on kwetter.* to kwetter@localhost identified by 'kwetter'"
+	mysql kwetter < sql/db.mysql
+    * sqlite:
+        sqlite3 ~/kwetter.db < sql/db.sqlite
+    * postgresql:
+        echo "create user kwetter with nocreatedb nocreaterole nocreateuser encrypted password 'kwetter'"|psql template1
+	echo "create database kwetter with owner=kwetter encoding='utf-8'"|psql template1
+	psql kwetter < sql/db.postgresql
     
   sudo apt-get install mysql-server libzdb-dev libjson0-dev libzeromq-dev
   FIXME: libzdb is not yet available on debian/ubuntu. Packages can be gotten by adding
@@ -35,16 +47,12 @@ installation:
 
   deb http://debian.nfgd.net/debian unstable main
 
-  - setup the database
-   
-  mysqladmin create kwetter
-  mysql -e 'grant all on kwetter.* to kwetter@localhost identified by "kwetter"'
-  mysql kwetter < db.sql
-
-  - compile and run
-
+  - compile
+  
   make
-  ./kwetterd
+  - edit the config file kwetter.conf and make sure the database URL is correct
+  - and run
+  ./kwetterd kwetter.conf
 
   - test
   sudo easy_install pyzmq
