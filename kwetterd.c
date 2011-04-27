@@ -120,6 +120,7 @@ void server_start(KW_T *K)
 	zmq_close(socket);
 	zmq_term(context);
 }
+
 int database_connect(KW_T *K)
 {
 	json_object *database = json_object_object_get(K->config, "database");
