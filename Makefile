@@ -29,20 +29,20 @@ all: kwetterd kwetter-m2
 
 ## main daemon
 kwetterd: kwetterd.o commands.o helpers.o
-	gcc $(LDFLAGS) -o $@ helpers.o commands.o kwetterd.o
+	gcc $(LDFLAGS) -o $@ $?
 
 helpers.o: helpers.c
-	gcc -c $(CFLAGS) -o helpers.o helpers.c
+	gcc -c $(CFLAGS) -o $@ $?
 
 commands.o: commands.c
-	gcc -c $(CFLAGS) -o commands.o commands.c
+	gcc -c $(CFLAGS) -o $@ $?
 
 kwetterd.o: kwetterd.c
-	gcc -c $(CFLAGS) -o kwetterd.o kwetterd.c
+	gcc -c $(CFLAGS) -o $@ $?
 
 # mongrel2 handler
 kwetter-m2: kwetter-m2.o
-	$(CXX) -o $@ $(CXXFLAGS) $(M2PP_CFLAGS) $(M2PP_LDFLAGS) $(LDFLAGS) kwetter-m2.o $(LIBS)
+	$(CXX) -o $@ $(CXXFLAGS) $(M2PP_CFLAGS) $(M2PP_LDFLAGS) $(LDFLAGS) $< $(LIBS)
 
 kwetter-m2.o: kwetter-m2.cpp
 	$(CXX) $(CXXFLAGS) $(M2PP_CFLAGS) $(ZMQ_CFLAGS) -o $@ -c $<
