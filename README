@@ -24,11 +24,14 @@ motivation:
     a great project to get my hands dirty on 0MQ, arguably the coolest networking
     shite since tcp sockets.
 
-installation:
+easy installation:
+  - use the scripted installer provided at http://github.com/pjstevns/kwetter
+
+manual installation:
   - like libzdb supports PostgreSQL, Oracle, and SQLite as well. For now no Oracle 
     schema is included.
   - install libzdb, json-c, zeromq
-  - install database server of choise (sqlite3, mysql-server, postgresql)
+  - install database server of choice (sqlite3, mysql-server, postgresql)
   - create database:
     * mysql:
 	mysqladmin create kwetter
