@@ -154,7 +154,7 @@ class Kwetter(object):
         return self.write(dict(command='search', avatar=avatar, string=string,
                                since=str(since), limit=limit))
 
-    def timeline(self, avatar, since=None):
+    def timeline(self, avatar, since=None, limit=1000):
         """
         show all messages of self and subscribed avatars since 'since'
         >>> conn = Kwetter(SERVER)
@@ -174,7 +174,7 @@ class Kwetter(object):
         """
         if not since: since = datetime.today()+timedelta(days=-7)
         return self.write(dict(command='timeline', avatar=avatar,
-                               since=str(since)))
+                               since=str(since), limit=limit))
 
     def tag(self, avatar, message, tag):
         """
@@ -221,6 +221,11 @@ class Kwetter(object):
         >>> id = m.get('messages')[0][0]
         >>> conn.tag('poster', id, 'testtag')
         'OK'
+        >>> conn.untag('poster', id, 'testtag')
+        'OK'
+        >>> r = conn.timeline('groupie')
+        >>> m = json.loads(r)
+        >>> [ x for x in m.get('messages') if x[0] == id ]
         """
         return self.write(dict(command='untag', avatar=avatar,
                                message=str(message),tag=tag))

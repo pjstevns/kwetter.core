@@ -391,6 +391,7 @@ int handle_search(KW_T *K, json_object *in)
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 4)));
 			
 			json_object_array_add(result, row);
 		}
@@ -423,11 +424,12 @@ int handle_search(KW_T *K, json_object *in)
 int handle_timeline(KW_T *K, json_object *in)
 {
 	C c; S s; R r;
-	json_object *avatar, *since=NULL;
+	json_object *avatar, *since, *limit;
 	json_object *result = NULL;
 
 	avatar = json_object_object_get(in, "avatar");
 	since = json_object_object_get(in, "since");
+	limit = json_object_object_get(in, "limit");
 	
 	c = ConnectionPool_getConnection(K->db->pool);
 	TRY
@@ -437,6 +439,7 @@ int handle_timeline(KW_T *K, json_object *in)
 		PreparedStatement_setString(s, 2, json_object_get_string(since));
 		PreparedStatement_setString(s, 3, json_object_get_string(avatar));
 		PreparedStatement_setString(s, 4, json_object_get_string(since));
+		PreparedStatement_setInt(s, 5, json_object_get_int(limit));
 
 		r = PreparedStatement_executeQuery(s);
 		result = json_object_new_array();
@@ -445,6 +448,7 @@ int handle_timeline(KW_T *K, json_object *in)
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
+			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 4)));
 			json_object_array_add(result, row);
 		}
 		Connection_commit(c);
