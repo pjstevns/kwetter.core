@@ -74,11 +74,29 @@ class M2Kwetter(object):
         'OK'
         >>> conn.follow('infoname','follows')
         'OK'
+        >>> conn.reg('follows2', 'Mary Doe')
+        'OK'
+        >>> conn.follow('infoname','follows2')
+        'OK'
+        >>> conn.reg('follower', 'John Deer')
+        'OK'
+        >>> conn.follow('follower','infoname')
+        'OK'
+        >>> conn.reg('follower2', 'Mary Deer')
+        'OK'
+        >>> conn.follow('follower2','infoname')
+        'OK'
         >>> conn.info('infoname')
-        '{ "avatar": "infoname", "fullname": "Paul Stevens", "follows": [ "follows" ] }'
+        '{ "avatar": "infoname", "fullname": "Paul Stevens", "follows": [ "follows", "follows2" ], "followers": [ "follower", "follower2"] }'
         >>> conn.unreg('infoname')
         'OK'
         >>> conn.unreg('follows')
+        'OK'
+        >>> conn.unreg('follows2')
+        'OK'
+        >>> conn.unreg('follower')
+        'OK'
+        >>> conn.unreg('follower2')
         'OK'
         """
         return self.write(dict(command='info',avatar=avatar))
