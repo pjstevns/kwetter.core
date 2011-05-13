@@ -176,6 +176,56 @@ class Kwetter(object):
         return self.write(dict(command='timeline', avatar=avatar,
                                since=str(since)))
 
+    def tag(self, avatar, message, tag):
+        """
+        assign attributes to messages
+        >>> conn = Kwetter(SERVER)
+        >>> r = conn.reg('poster', 'Test User')
+        >>> r = conn.reg('groupie', 'Other User')
+        >>> r = conn.follow('groupie', 'poster')
+        >>> r = conn.post('poster', 'blah message 1')
+        >>> conn.timeline('groupie')
+        '{ "avatar": "groupie", ... }'
+        >>> r = conn.post('poster', 'blah message 2')
+        >>> r = conn.post('poster', 'blah message 3')
+        >>> r = conn.post('poster', 'blah message 4')
+        >>> r = conn.post('poster', 'blah message 5')
+        >>> r = conn.timeline('groupie')
+        >>> m = json.loads(r)
+        >>> id = m.get('messages')[0][0]
+        >>> conn.tag('poster', id, 'testtag')
+        'OK'
+        >>> r = conn.timeline('groupie')
+        >>> m = json.loads(r)
+        >>> [ x for x in m.get('messages') if x[0] == id ]
+        """
+        return self.write(dict(command='tag', avatar=avatar,
+                               message=str(message),tag=tag))
+
+    def untag(self, avatar, message, tag):
+        """
+        un-assign attributes to messages
+        >>> conn = Kwetter(SERVER)
+        >>> r = conn.reg('poster', 'Test User')
+        >>> r = conn.reg('groupie', 'Other User')
+        >>> r = conn.follow('groupie', 'poster')
+        >>> r = conn.post('poster', 'blah message 1')
+        >>> conn.timeline('groupie')
+        '{ "avatar": "groupie", ... }'
+        >>> r = conn.post('poster', 'blah message 2')
+        >>> r = conn.post('poster', 'blah message 3')
+        >>> r = conn.post('poster', 'blah message 4')
+        >>> r = conn.post('poster', 'blah message 5')
+        >>> r = conn.timeline('groupie')
+        >>> m = json.loads(r)
+        >>> id = m.get('messages')[0][0]
+        >>> conn.tag('poster', id, 'testtag')
+        'OK'
+        """
+        return self.write(dict(command='untag', avatar=avatar,
+                               message=str(message),tag=tag))
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod(optionflags=doctest.ELLIPSIS)

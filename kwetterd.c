@@ -86,6 +86,10 @@ int handle(KW_T *K, const char *in)
 		handle_search(K, obj);
 	else if (qmatch(cmd, "timeline"))
 		handle_timeline(K, obj);
+	else if (qmatch(cmd, "tag"))
+		handle_tag(K, obj);
+	else if (qmatch(cmd, "untag"))
+		handle_untag(K, obj);
 
 	// cleanup
 	json_object_put(cmd);

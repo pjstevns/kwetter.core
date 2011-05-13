@@ -1,25 +1,55 @@
+alter database character set utf8;
+set foreign_key_checks=0;
 
+drop table if exists avatar;
 create table avatar (
 	handle varchar(32) not null,
 	fullname varchar(128) not null,
 	primary key (handle)
 ) engine=innodb default charset=utf8;
 
+drop table if exists auth;
+create table auth (
+	avatar varchar(32) not null,
+	mechanism varchar(16) not null,
+	token varchar(128) not null,
+	constraint `auth_fk_1` foreign key (avatar) references avatar(handle) on delete cascade on update cascade
+) engine=innodb default charset=utf8;
+
+drop table if exists follow;
 create table follow (
 	lhandle varchar(32) not null,
 	rhandle varchar(32) not null,
 	since datetime not null,
-	unique key following (lhandle, rhandle),
-	key since_index (since),
+	unique key follow_idx_1 (lhandle, rhandle),
+	key follow_idx_2 (since),
 	constraint `follow_fk_1` foreign key (lhandle) references avatar(handle) on delete cascade on update cascade,
 	constraint `follow_fk_2` foreign key (rhandle) references avatar(handle) on delete cascade on update cascade
 ) engine=innodb default charset=utf8;
 	
+drop table if exists message;
 create table message (
+	id bigint(20) not null auto_increment, 
 	owner varchar(32) not null,
 	message varchar(180) not null,
 	created datetime not null,
-	key owner_index (owner),
-	key message_index (message),
-	constraint `message_fk_1` foreign key (owner) references avatar(handle) on delete cascade on update cascade
+	key message_idx_1 (owner),
+	key message_idx_2 (message),
+	constraint `message_fk_1` foreign key (owner) references avatar(handle) on delete cascade on update cascade,
+	primary key(id)
 ) engine=innodb default charset=utf8;
+
+drop table if exists attr;
+create table attr (
+	message bigint(20) not null,
+	avatar varchar(32) not null,
+	name varchar(32) not null,
+	value varchar(64) not null,
+	key attr_idx_1 (avatar, message),
+	key attr_idx_2 (name),
+	key attr_idx_3 (value),
+	constraint `attr_fk_1` foreign key (avatar) references avatar(handle) on delete cascade on update cascade,
+	constraint `attr_fk_2` foreign key (message) references message(id) on delete cascade on update cascade
+) engine=innodb default charset=utf8;
+
+set foreign_key_checks=1;
