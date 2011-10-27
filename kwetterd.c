@@ -63,7 +63,6 @@ int handle(KW_T *K, const char *in)
 {
 	json_object *obj, *cmd;
 
-	printf("in: [%s]\n", in);
 	obj = json_tokener_parse(in);
 
 	cmd = json_object_object_get(obj, "command");
@@ -90,6 +89,8 @@ int handle(KW_T *K, const char *in)
 		handle_tag(K, obj);
 	else if (qmatch(cmd, "untag"))
 		handle_untag(K, obj);
+	else if (qmatch(cmd, "updates"))
+		handle_updates(K, obj);
 
 	// cleanup
 	json_object_put(cmd);

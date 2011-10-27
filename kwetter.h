@@ -38,5 +38,6 @@ int handle_search(KW_T *, json_object *);
 int handle_timeline(KW_T *, json_object *);
 int handle_tag(KW_T *, json_object *);
 int handle_untag(KW_T *, json_object *);
+int handle_updates(KW_T *, json_object *);
 
 #endif
