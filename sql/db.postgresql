@@ -14,7 +14,9 @@ create table follow (
 create unique index follow_1 on follow(lhandle, rhandle);
 create index follow_2 on follow(since);
 	
+create sequence message_id_seq;
 create table message (
+	id bigint default nextval('message_id_seq'),
 	owner varchar(32) not null references avatar(handle) on delete cascade on update cascade,
 	message varchar(180) not null,
 	created timestamp without time zone not null
@@ -24,3 +26,13 @@ create index message_1 on message(owner);
 create index message_2 on message(message);
 create index message_3 on message(created);
 
+create table attr (
+	message bigint(20) not null references message(id) on delete cascade on update cascade,
+	avatar varchar(32) not null references avatar(handle) on delete cascade on update cascade,
+	name varchar(32) not null,
+	value varchar(64) not null
+);
+
+create index attr_1 on attr (avatar, message);
+create index attr_2 on attr (name);
+create index attr_3 on attr (value);

@@ -150,11 +150,13 @@ CREATE TRIGGER fk_delete_message_avatar
 create table attr (
 	message integer not null,
 	avatar text not null,
-	tag text not null
+	name text not null,
+	value text not null
 );
 
 create index attr_idx_1 on attr(avatar, message);
-create index attr_idx_2 on attr(tag);
+create index attr_idx_2 on attr(name);
+create index attr_idx_3 on attr(value);
 
 CREATE TRIGGER fk_insert_attr_avatar
         BEFORE INSERT ON attr
