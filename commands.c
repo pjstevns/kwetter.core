@@ -6,10 +6,17 @@
 #include <malloc.h>
 #include "kwetter.h"
 
+/*
+ *  short aliases
+ */
+
 #define C Connection_T
 #define S PreparedStatement_T
 #define R ResultSet_T
 
+/*
+ *  query definitions
+ */
 #define REG_QUERY           "INSERT INTO avatar (handle,fullname) VALUES (?,?)"
 #define UNREG_QUERY         "DELETE FROM avatar WHERE handle = ?"
 #define REREG_QUERY         "UPDATE avatar SET handle=?,fullname=? WHERE handle=?"
@@ -38,10 +45,18 @@
 #define UNTAG_QUERY         "DELETE FROM attr WHERE message=? AND avatar=? AND name=? AND value=? "
 #define UPDATES_QUERY       "SELECT id,owner,message,created FROM message " \
 	                    "WHERE owner=? AND created >= ? ORDER BY created DESC LIMIT ?"
-#define GET_QUERY           "SELECT id,owner,message,created FROM message " \
-	                    "WHERE id=?"
+#define GET_QUERY           "SELECT id,owner,message,created FROM message WHERE id=?"
+
+
+/*
+ * helper
+ */
 #define LOG_SQLERROR printf("SQL Exception: %s\n", Exception_frame.message)
 
+
+/* 
+ * driver specific SQL 
+ */
 typedef enum {
 	SQL_CURRENT_TIMESTAMP
 } sql_frag_t;
@@ -88,6 +103,11 @@ const char * get_sql(KW_T *K, sql_frag_t key)
 
 	return sql;
 }
+
+
+/*
+ * command implementations
+ */
 
 int handle_reg(KW_T *K, json_object *in)
 {
@@ -440,7 +460,10 @@ int handle_timeline(KW_T *K, json_object *in)
 	C c; S s; R r;
 	json_object *avatar, *since, *limit;
 	json_object *result = NULL;
+
+#if 0
 	json_object *ids = NULL;
+#endif
 
 	avatar = json_object_object_get(in, "avatar");
 	since = json_object_object_get(in, "since");
@@ -459,10 +482,10 @@ int handle_timeline(KW_T *K, json_object *in)
 		r = PreparedStatement_executeQuery(s);
 		while (r && ResultSet_next(r)) {
 			if (! result) result = json_object_new_array();
+#if 0
 			if (! ids) ids = json_object_new_array();
-
 			json_object_array_add(ids, json_object_new_int(ResultSet_getInt(r,1)));
-
+#endif
 			json_object *row = json_object_new_array();
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
@@ -487,9 +510,6 @@ int handle_timeline(KW_T *K, json_object *in)
 			while (r && ResultSet_next(r)) {
 
 			}
-
-
-
 		}
 #endif
 

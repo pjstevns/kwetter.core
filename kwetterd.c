@@ -11,6 +11,10 @@
 
 #include "kwetter.h"
 
+/*
+ * read the config file and parse it as json
+ * after cleaning out comments
+ */
 void config_read(KW_T *K, const char * filename)
 {
 	json_object *config = NULL;
@@ -59,6 +63,9 @@ void config_read(KW_T *K, const char * filename)
 	K->config = config;
 }
 
+/*
+ * command dispatcher
+ */
 int handle(KW_T *K, const char *in)
 {
 	json_object *obj, *cmd;
@@ -109,11 +116,9 @@ int database_connect(KW_T *K)
 		printf("database not supported: %s\n", dburl);
 		_exit(1);
 	}
-
 	printf("database[url]: %s\n", dburl);
 
 	K->db = (DB_T *)malloc(sizeof(DB_T));
-
 	K->db->url = URL_new(dburl);
 	assert(K->db->url);
 	K->db->pool = ConnectionPool_new(K->db->url);
