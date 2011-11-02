@@ -29,27 +29,12 @@ create table follow (
 	
 drop table if exists message;
 create table message (
-	id bigint(20) not null auto_increment, 
 	owner varchar(32) not null,
 	message varchar(180) not null,
 	created datetime not null,
 	key message_idx_1 (owner),
 	key message_idx_2 (message),
-	constraint `message_fk_1` foreign key (owner) references avatar(handle) on delete cascade on update cascade,
-	primary key(id)
-) engine=innodb default charset=utf8;
-
-drop table if exists attr;
-create table attr (
-	message bigint(20) not null,
-	avatar varchar(32) not null,
-	name varchar(32) not null,
-	value varchar(64) not null,
-	key attr_idx_1 (avatar, message),
-	key attr_idx_2 (name),
-	key attr_idx_3 (value),
-	constraint `attr_fk_1` foreign key (avatar) references avatar(handle) on delete cascade on update cascade,
-	constraint `attr_fk_2` foreign key (message) references message(id) on delete cascade on update cascade
+	constraint `message_fk_1` foreign key (owner) references avatar(handle) on delete cascade on update cascade
 ) engine=innodb default charset=utf8;
 
 set foreign_key_checks=1;

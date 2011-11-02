@@ -26,26 +26,21 @@
 #define FOLLOW_QUERY        "INSERT INTO follow (lhandle,rhandle,since) VALUES (?,?,%s)"
 #define UNFOLLOW_QUERY      "DELETE FROM follow WHERE lhandle = ? AND rhandle = ?"
 #define POST_QUERY          "INSERT INTO message (owner,message,created) VALUES (?,?,%s)"
-#define SEARCH_QUERY        "SELECT id,owner,message,created FROM message " \
+#define SEARCH_QUERY        "SELECT owner,message,created FROM message " \
 			    "WHERE message LIKE '%%' || ? || '%%' AND created >= ? " \
 			    "ORDER BY created DESC LIMIT ?"
-#define LIST_QUERY          "SELECT id,owner,message,created FROM message " \
+#define LIST_QUERY          "SELECT owner,message,created FROM message " \
 			    "WHERE created >= ? " \
 			    "ORDER BY created DESC LIMIT ?"
-#define TIMELINE_QUERY      "SELECT id,owner,message,created " \
+#define TIMELINE_QUERY      "SELECT owner,message,created " \
        			    "FROM message m JOIN follow f ON m.owner=f.rhandle " \
 			    "WHERE f.lhandle = ? AND m.created >= ? and m.created >= f.since " \
 			    "UNION " \
-			    "SELECT id,owner,message,created FROM message m " \
+			    "SELECT owner,message,created FROM message m " \
 			    "WHERE m.owner=? AND m.created >= ? " \
 			    "ORDER BY created DESC LIMIT ?"
-#define TAGS_QUERY          "SELECT message,name,value FROM attr WHERE avatar=? AND message IN (?)"
-#define TAG_QUERY           "INSERT INTO attr (message,avatar,name,value) " \
-			    "VALUES (?,?,?,?)"
-#define UNTAG_QUERY         "DELETE FROM attr WHERE message=? AND avatar=? AND name=? AND value=? "
-#define UPDATES_QUERY       "SELECT id,owner,message,created FROM message " \
+#define UPDATES_QUERY       "SELECT owner,message,created FROM message " \
 	                    "WHERE owner=? AND created >= ? ORDER BY created DESC LIMIT ?"
-#define GET_QUERY           "SELECT id,owner,message,created FROM message WHERE id=?"
 
 
 /*
@@ -70,6 +65,7 @@ const char * get_sql_mysql(KW_T *K, sql_frag_t key)
 	}
 	return "";
 }
+
 const char * get_sql_sqlite(KW_T *K, sql_frag_t key)
 {
 	switch(key) {
@@ -79,6 +75,7 @@ const char * get_sql_sqlite(KW_T *K, sql_frag_t key)
 	}
 	return "";
 }
+
 const char * get_sql_postgresql(KW_T *K, sql_frag_t key)
 {
 	switch(key) {
@@ -283,7 +280,6 @@ int handle_info(KW_T *K, json_object *in)
 	return 0;
 }
 
-
 int handle_follow(KW_T *K, json_object *in)
 {
 	C c; S s; volatile int result = 0;
@@ -424,10 +420,7 @@ int handle_search(KW_T *K, json_object *in)
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
-			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 4)));
-			
 			json_object_array_add(result, row);
-	
 		}
 
 		Connection_commit(c);
@@ -461,10 +454,6 @@ int handle_timeline(KW_T *K, json_object *in)
 	json_object *avatar, *since, *limit;
 	json_object *result = NULL;
 
-#if 0
-	json_object *ids = NULL;
-#endif
-
 	avatar = json_object_object_get(in, "avatar");
 	since = json_object_object_get(in, "since");
 	limit = json_object_object_get(in, "limit");
@@ -482,36 +471,12 @@ int handle_timeline(KW_T *K, json_object *in)
 		r = PreparedStatement_executeQuery(s);
 		while (r && ResultSet_next(r)) {
 			if (! result) result = json_object_new_array();
-#if 0
-			if (! ids) ids = json_object_new_array();
-			json_object_array_add(ids, json_object_new_int(ResultSet_getInt(r,1)));
-#endif
 			json_object *row = json_object_new_array();
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
-			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 4)));
 			json_object_array_add(result, row);
 		}
-
-#if 0
-		if (ids) {
-			char *t = strdup(json_object_to_json_string(ids));
-			t[0] = ' ';
-			t[strlen(t)-1] = '\0';
-			printf("idlist: %s\n", t);
-
-			s = Connection_prepareStatement(c, TAGS_QUERY);
-			PreparedStatement_setString(s, 1, json_object_get_string(avatar));
-			PreparedStatement_setString(s, 2, t);
-			free(t);
-
-			r = PreparedStatement_executeQuery(s);
-			while (r && ResultSet_next(r)) {
-
-			}
-		}
-#endif
 
 		Connection_commit(c);
 	CATCH(SQLException)
@@ -533,80 +498,6 @@ int handle_timeline(KW_T *K, json_object *in)
 	}
 
 	return 0;
-}
-
-int handle_tag(KW_T *K, json_object *in)
-{
-	C c; S s;
-	volatile int result = 0;
-	json_object *avatar, *message, *name, *value;
-
-	avatar = json_object_object_get(in, "avatar");
-	message = json_object_object_get(in, "message");
-	name = json_object_object_get(in, "name");
-	value = json_object_object_get(in, "value");
-	c = ConnectionPool_getConnection(K->db->pool);
-	TRY
-		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, TAG_QUERY);
-		PreparedStatement_setString(s, 1, json_object_get_string(message));
-		PreparedStatement_setString(s, 2, json_object_get_string(avatar));
-		PreparedStatement_setString(s, 3, json_object_get_string(name));
-		PreparedStatement_setString(s, 4, json_object_get_string(value));
-
-		PreparedStatement_execute(s);
-		result = 1;
-		Connection_commit(c);
-	CATCH(SQLException)
-		LOG_SQLERROR;
-		Connection_rollback(c);
-	FINALLY
-		Connection_close(c);
-	END_TRY;
-
-	if (result)
-		s_send(K->socket, "OK");
-	else
-		s_send(K->socket, "NO");
-
-	return result;
-}
-
-int handle_untag(KW_T *K, json_object *in)
-{
-	C c; S s;
-	volatile int result = 0;
-	json_object *avatar, *message, *name, *value;
-
-	avatar = json_object_object_get(in, "avatar");
-	message = json_object_object_get(in, "message");
-	name = json_object_object_get(in, "name");
-	value = json_object_object_get(in, "value");
-	c = ConnectionPool_getConnection(K->db->pool);
-	TRY
-		Connection_beginTransaction(c);
-		s = Connection_prepareStatement(c, UNTAG_QUERY);
-		PreparedStatement_setString(s, 1, json_object_get_string(message));
-		PreparedStatement_setString(s, 2, json_object_get_string(avatar));
-		PreparedStatement_setString(s, 3, json_object_get_string(name));
-		PreparedStatement_setString(s, 3, json_object_get_string(value));
-
-		PreparedStatement_execute(s);
-		result = 1;
-		Connection_commit(c);
-	CATCH(SQLException)
-		LOG_SQLERROR;
-		Connection_rollback(c);
-	FINALLY
-		Connection_close(c);
-	END_TRY;
-
-	if (result)
-		s_send(K->socket, "OK");
-	else
-		s_send(K->socket, "NO");
-
-	return result;
 }
 
 int handle_updates(KW_T *K, json_object *in)
@@ -635,9 +526,7 @@ int handle_updates(KW_T *K, json_object *in)
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 1)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 2)));
 			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 3)));
-			json_object_array_add(row, json_object_new_string(ResultSet_getString(r, 4)));
 			json_object_array_add(result, row);
-
 		}
 	CATCH(SQLException)
 		LOG_SQLERROR;

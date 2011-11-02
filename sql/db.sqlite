@@ -108,7 +108,6 @@ CREATE TRIGGER fk_delete_follow_rhandle_avatar
 
 
 create table message (
-	id integer primary key,
 	owner text not null,
 	message text not null,
 	created datetime not null
@@ -146,74 +145,4 @@ CREATE TRIGGER fk_delete_message_avatar
         FOR EACH ROW BEGIN
                 DELETE FROM message WHERE owner = OLD.handle;
         END;
-
-create table attr (
-	message integer not null,
-	avatar text not null,
-	name text not null,
-	value text not null
-);
-
-create index attr_idx_1 on attr(avatar, message);
-create index attr_idx_2 on attr(name);
-create index attr_idx_3 on attr(value);
-
-CREATE TRIGGER fk_insert_attr_avatar
-        BEFORE INSERT ON attr
-        FOR EACH ROW BEGIN
-                SELECT CASE 
-                        WHEN (new.avatar IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE handle = new.avatar) IS NULL)
-                        THEN RAISE (ABORT, 'insert on table "attr" violates foreign key constraint "fk_insert_attr_avatar"')
-                END;
-        END;
-CREATE TRIGGER fk_update1_attr_avatar
-        BEFORE UPDATE ON attr
-        FOR EACH ROW BEGIN
-                SELECT CASE 
-                        WHEN (new.avatar IS NOT NULL)
-                                AND ((SELECT handle FROM avatar WHERE handle = new.avatar) IS NULL)
-                        THEN RAISE (ABORT, 'update on table "attr" violates foreign key constraint "fk_update1_attr_avatar"')
-                END;
-        END;
-CREATE TRIGGER fk_update2_attr_avatar
-        AFTER UPDATE ON avatar
-        FOR EACH ROW BEGIN
-                UPDATE attr SET avatar = new.handle WHERE avatar = OLD.handle;
-        END;
-CREATE TRIGGER fk_delete_attr_avatar
-        BEFORE DELETE ON avatar
-        FOR EACH ROW BEGIN
-                DELETE FROM attr WHERE avatar = OLD.handle;
-        END;
-
-CREATE TRIGGER fk_insert_attr_message
-        BEFORE INSERT ON attr
-        FOR EACH ROW BEGIN
-                SELECT CASE 
-                        WHEN (new.message IS NOT NULL)
-                                AND ((SELECT id FROM message WHERE id = new.message) IS NULL)
-                        THEN RAISE (ABORT, 'insert on table "attr" violates foreign key constraint "fk_insert_attr_message"')
-                END;
-        END;
-CREATE TRIGGER fk_update1_attr_message
-        BEFORE UPDATE ON attr
-        FOR EACH ROW BEGIN
-                SELECT CASE 
-                        WHEN (new.message IS NOT NULL)
-                                AND ((SELECT id FROM message WHERE id = new.message) IS NULL)
-                        THEN RAISE (ABORT, 'update on table "attr" violates foreign key constraint "fk_update1_attr_message"')
-                END;
-        END;
-CREATE TRIGGER fk_update2_attr_message
-        AFTER UPDATE ON message
-        FOR EACH ROW BEGIN
-                UPDATE attr SET message = new.id WHERE message = OLD.id;
-        END;
-CREATE TRIGGER fk_delete_attr_message
-        BEFORE DELETE ON message
-        FOR EACH ROW BEGIN
-                DELETE FROM attr WHERE message = OLD.id;
-        END;
-
 

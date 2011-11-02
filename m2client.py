@@ -202,72 +202,6 @@ class M2Kwetter(object):
         return self.write(dict(command='timeline', avatar=avatar,
                                since=str(since),limit=str(limit)))
 
-    def tag(self, avatar, message, name, value):
-        """
-        assign attributes to messages
-        >>> conn = M2Kwetter(SERVER)
-        >>> r = conn.reg('tagger', 'Test User')
-        >>> r = conn.reg('tagviewer', 'Other User')
-        >>> r = conn.follow('tagviewer', 'tagger')
-        >>> r = conn.post('tagger', 'blah message 1')
-        >>> conn.timeline('tagviewer')
-        '{ "avatar": "tagviewer", ... }'
-        >>> r = conn.post('tagger', 'blah message 2')
-        >>> r = conn.post('tagger', 'blah message 3')
-        >>> r = conn.post('tagger', 'blah message 4')
-        >>> r = conn.post('tagger', 'blah message 5')
-        >>> r = conn.timeline('tagviewer')
-        >>> m = json.loads(r)
-        >>> id = m.get('messages')[0][0]
-        >>> int(id) > 0
-        True
-        >>> conn.tag('tagger', id, 'tag', 'test')
-        'OK'
-        >>> r = conn.timeline('tagviewer')
-        >>> m = json.loads(r)
-        >>> message = [ x for x in m.get('messages') if x[0] == id ][0]
-        >>> message[0] == id
-        True
-
-        """
-        return self.write(dict(command='tag', avatar=avatar,
-                               message=str(message),name=name,value=value ))
-
-    def untag(self, avatar, message, name, value):
-        """
-        un-assign attributes to messages
-        >>> conn = M2Kwetter(SERVER)
-        >>> r = conn.reg('poster', 'Test User')
-        >>> r = conn.reg('groupie', 'Other User')
-        >>> r = conn.follow('groupie', 'poster')
-        >>> r = conn.post('poster', 'blah message 1')
-        >>> conn.timeline('groupie')
-        '{ "avatar": "groupie", ... }'
-        >>> r = conn.post('poster', 'blah message 2')
-        >>> r = conn.post('poster', 'blah message 3')
-        >>> r = conn.post('poster', 'blah message 4')
-        >>> r = conn.post('poster', 'blah message 5')
-        >>> r = conn.timeline('groupie')
-        >>> m = json.loads(r)
-        >>> id = m.get('messages')[0][0]
-        >>> conn.tag('poster', id, 'testtag', 'testvalue')
-        'OK'
-        >>> conn.untag('poster', id, 'testtag', 'testvalue')
-        'OK'
-        >>> r = conn.timeline('groupie')
-        >>> m = json.loads(r)
-        >>> messages = [ x for x in m.get('messages') if x[0] == id ]
-        >>> messages[0][0] == id
-        True
-        >>> conn.unreg('poster')
-        'OK'
-        >>> conn.unreg('groupie')
-        'OK'
-        """
-        return self.write(dict(command='untag', avatar=avatar,
-                               message=str(message),name=name,
-                               value=value))
-
     def updates(self, avatar, since=None, limit=10):
         """ 
         show messages for an avatar
@@ -289,4 +223,5 @@ class M2Kwetter(object):
 
 if __name__ == '__main__':
     import doctest
+    print "running..."
     doctest.testmod(optionflags=doctest.ELLIPSIS)
