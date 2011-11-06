@@ -142,6 +142,7 @@ void server_start(KW_T *K)
 	cmdchan = json_object_get_string(command);
 
 	printf("channel[command]: %s\n", cmdchan);
+	fflush(stdout);
 
 	zmq_bind(socket, cmdchan);
 	K->socket = socket;

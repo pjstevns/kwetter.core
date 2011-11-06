@@ -18,6 +18,7 @@ char * s_recv (void *socket)
 	zmq_msg_close (&message);
 	string [size] = 0;
 	printf("in: [%s]\n", string);
+	fflush(stdout);
 	return string;
 }
 
@@ -26,6 +27,7 @@ int s_send (void *socket, const char *string)
 	int rc;
 	zmq_msg_t message;
 	printf("out: [%s]\n", string);
+	fflush(stdout);
 	zmq_msg_init_size (&message, strlen (string));
 	memcpy (zmq_msg_data (&message), string, strlen (string));
 	rc = zmq_send (socket, &message, 0);

@@ -81,10 +81,14 @@ Response* Kwetter::handle(const m2pp::request& req)
 				code = 503;
 				status = "RequestError";
 			} else {
-
 				// push payload to kwetterd
+				//
+				std::cout << "<<: " << req.body << std::endl;
+
 				s_send(req.body);
 				std::string result = s_recv();
+
+				std::cout << ">>: " << result << std::endl;
 				response << result << std::endl;
 				if (result == "NO" || result == "ERR") {
 					code = 502;
@@ -96,10 +100,6 @@ Response* Kwetter::handle(const m2pp::request& req)
 		} 
 	}
 	response << std::endl;
-
-	std::cout << req.body << std::endl;
-	std::cout << response.str();
-	std::cout << "length: " << response.tellp() << std::endl;
 
 	Response *R = new Response(response.str(), code, status);
 	return R;
