@@ -3,6 +3,7 @@
 #include <string.h>
 #include <zmq.h>
 #include <json.h>
+#include <stdio.h>
 
 #include "helpers.h"
 
